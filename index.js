@@ -73,7 +73,7 @@ async function run() {
       const newTips = req.body;
       const result = await tipsCollection.insertOne(newTips);
       res.send(result)
-    });
+    })
 
 
 } finally {
