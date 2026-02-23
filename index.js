@@ -34,17 +34,18 @@ async function run() {
     const challengesCollection = DB.collection("challenges");
     const activeChallengesCollection = DB.collection("active-challenges");
     const tipsCollection = DB.collection("tips");
+    const eventsCollection = DB.collection("events");
 
     // challenges
 
-    app.post('/challenges', async(req, res)=>{
+    app.post('/api/challenges', async(req, res)=>{
         const newChallenge = req.body;
         const result = await challengesCollection.insertOne(newChallenge)
         res.send(result)
 
     });
 
-    app.get('/challenges', async(req, res)=>{
+    app.get('/api/challenges', async(req, res)=>{
         const cursor = challengesCollection.find();
         const result = await cursor.toArray();
         res.send(result)
@@ -52,14 +53,14 @@ async function run() {
 
     // active challenges
 
-    app.post('/active-challenges', async(req, res)=>{
+    app.post('/api/active-challenges', async(req, res)=>{
         const newActiveChallenge = req.body;
         const result = await activeChallengesCollection.insertOne(newActiveChallenge)
         res.send(result)
 
     });
 
-     app.get('/active-challenges', async(req, res)=>{
+     app.get('/api/active-challenges', async(req, res)=>{
         const cursor = activeChallengesCollection.find();
         const result = await cursor.toArray();
         res.send(result)
@@ -69,15 +70,23 @@ async function run() {
 
     // tips section
 
-    app.post('/tips', async(req, res)=>{
+    app.post('/api/tips', async(req, res)=>{
       const newTips = req.body;
       const result = await tipsCollection.insertOne(newTips);
       res.send(result)
     });
 
-    app.get('/tips', async(req, res)=>{
+    app.get('/api/tips', async(req, res)=>{
       const cursor = tipsCollection.find();
-      const result = cursor.toArray();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // events section
+
+    app.post('/api/events', async(req, res)=>{
+      const newEvents = req.body;
+      const result = await eventsCollection.insertOne(newEvents);
       res.send(result);
     })
 
