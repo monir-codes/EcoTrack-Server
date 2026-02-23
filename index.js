@@ -33,6 +33,7 @@ async function run() {
     const DB = client.db("ecotrack_user");
     const challengesCollection = DB.collection("challenges");
     const activeChallengesCollection = DB.collection("active-challenges");
+    const tipsCollection = DB.collection("tips");
 
     // challenges
 
@@ -52,8 +53,8 @@ async function run() {
     // active challenges
 
     app.post('/active-challenges', async(req, res)=>{
-        const newChallenge = req.body;
-        const result = await activeChallengesCollection.insertOne(newChallenge)
+        const newActiveChallenge = req.body;
+        const result = await activeChallengesCollection.insertOne(newActiveChallenge)
         res.send(result)
 
     });
@@ -66,6 +67,13 @@ async function run() {
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
+    // tips section
+
+    app.post('/tips', async(req, res)=>{
+      const newTips = req.body;
+      const result = await tipsCollection.insertOne(newTips);
+      res.send(result)
+    });
 
 
 } finally {
