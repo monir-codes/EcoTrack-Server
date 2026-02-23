@@ -73,6 +73,12 @@ async function run() {
       const newTips = req.body;
       const result = await tipsCollection.insertOne(newTips);
       res.send(result)
+    });
+
+    app.get('/tips', async(req, res)=>{
+      const cursor = tipsCollection.find();
+      const result = cursor.toArray();
+      res.send(result);
     })
 
 
