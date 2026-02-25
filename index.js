@@ -43,12 +43,12 @@ async function run() {
       const newUser = req.body;
       const email = req.body.email;
       const query = {email: email};
-      const existingUser = usersCollection.find(query);
+      const existingUser = await usersCollection.find(query);
 
       if(existingUser){
        return res.send({message: "user already exist!"})
       }else{
-        const result = usersCollection.insertOne(newUser);
+        const result = await usersCollection.insertOne(newUser);
         res.send(result)
       }
     })
