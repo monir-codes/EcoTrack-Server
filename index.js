@@ -31,17 +31,44 @@ async function run() {
 
 
     const DB = client.db("ecotrack_user");
+    const usersCollection = DB.collection("users")
     const challengesCollection = DB.collection("challenges");
     const activeChallengesCollection = DB.collection("active-challenges");
     const tipsCollection = DB.collection("tips");
     const eventsCollection = DB.collection("events");
 
+
+
+    app.post('/api/users', async(req, res)=>{
+      const newUser = req.body;
+      const email = req.body.email;
+      const query = {email: email};
+      const existingUser = usersCollection.find(query);
+
+      if(existingUser){
+       return res.send({message: "user already exist!"})
+      }else{
+        const result = usersCollection.insertOne(newUser);
+        res.send(result)
+      }
+    })
+
     // challenges
 
     app.post('/api/challenges', async(req, res)=>{
         const newChallenge = req.body;
-        const result = await challengesCollection.insertOne(newChallenge)
-        res.send(result)
+        const title = req.body.title;
+        const query = {title: title};
+        const existingTitle = await challengesCollection.find(query);
+
+        if(existingTitle){
+        return res.send({message: "this title already have exist"
+          })
+        }else{
+          
+          const result = await challengesCollection.insertOne(newChallenge)
+          res.send(result)
+        }
 
     });
 
@@ -86,7 +113,22 @@ async function run() {
 
     app.post('/api/events', async(req, res)=>{
       const newEvents = req.body;
-      const result = await eventsCollection.insertOne(newEvents);
+      const content = req.body.content;
+      const query = {content: content};
+
+      const existingContent = await eventsCollection.find(query);
+      if(existingContent){
+       return res.send({message: "this event already have exist"})
+      }else{
+
+        const result = await eventsCollection.insertOne(newEvents);
+        res.send(result);
+      }
+    });
+
+    app.get('/api/events', async(req, res)=>{
+      const cursor = eventsCollection.find();
+      const result = cursor.toArray();
       res.send(result);
     })
 
