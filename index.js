@@ -37,11 +37,18 @@ async function run() {
       res.send('Server is running successfully')
     });
 
-   app.post('/challenges', async (req, res) => {
+
+  app.get('/api/challenges', async (req, res) => {
+    const cursor = challengesCollection.find({});
+    const result = await cursor.toArray();
+    res.send(result);
+  });
+
+   app.post('/api/challenges', async (req, res) => {
     const challenge = req.body;
     const result = await challengesCollection.insertOne(challenge);
     res.send(result);
-   })
+   });
 
 
 
