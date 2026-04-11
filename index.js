@@ -25,12 +25,17 @@ const client = new MongoClient(uri, {
   }
 });
 
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-   const db = client.db('ecotrack_db');
-   const challengesCollection = db.collection('challenges');
+    const db = client.db('ecotrack_db');
+    const challengesCollection = db.collection('challenges');
+    
+    app.get('/', (req, res) => {
+      res.send('Server is running successfully')
+    });
 
    app.post('/challenges', async (req, res) => {
     const challenge = req.body;
@@ -48,4 +53,8 @@ async function run() {
     // await client.close();
   }
 }
+
+app.listen(port, () => {
+  console.log(`EcoTrack server is running on port ${port}`);
+});
 run().catch(console.dir);
