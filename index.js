@@ -39,13 +39,21 @@ async function run() {
 
 
   app.get('/api/challenges', async (req, res) => {
-    const cursor = challengesCollection.find({});
+    const cursor = challengesCollection.find({}).sort({ startDate: -1 });
     const result = await cursor.toArray();
     res.send(result);
   });
 
    app.post('/api/challenges', async (req, res) => {
     const challenge = req.body;
+
+    const query = {_id: challenge._id};
+    const existingChallenge = await challengesCollection.findOne(query);
+
+    if (existingChallenge) {
+      return res.status(400).send({ message: 'Challenge with this ID already exists' });
+    }
+
     const result = await challengesCollection.insertOne(challenge);
     res.send(result);
    });
