@@ -38,7 +38,7 @@ async function run() {
     });
 
 
-  app.get('/api/challenges', async (req, res) => {
+   app.get('/api/challenges', async (req, res) => {
     const cursor = challengesCollection.find({}).sort({ startDate: -1 });
     const result = await cursor.toArray();
     res.send(result);
@@ -58,6 +58,16 @@ async function run() {
     res.send(result);
    });
 
+   app.delete('/api/challenges/:id', async (req, res) => {
+    const id = req.params.id;
+    const query = {_id: id};
+    const result = await challengesCollection.deleteOne(query);
+    if (result.deletedCount === 0) {
+      return res.status(404).send({ message: 'Challenge not found' });
+    } else {
+      return res.send({ message: 'Challenge deleted successfully' });
+    }
+   });
 
 
     // Send a ping to confirm a successful connection
