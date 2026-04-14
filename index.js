@@ -32,7 +32,7 @@ async function run() {
     await client.connect();
     const db = client.db('ecotrack_db');
     const challengesCollection = db.collection('challenges');
-    
+    const userChallengesCollection = db.collection('users_challenges');    
     app.get('/', (req, res) => {
       res.send('Server is running successfully')
     });
@@ -69,24 +69,51 @@ async function run() {
     res.send(result);
    });
 
-   app.post('/api/challenges/join/:id', async (req, res) => {
-    const id = req.params.id;
-    const { userId } = req.body;
+const { ObjectId } = require('mongodb');
 
-    const query = { _id: id };
-    const challenge = await challengesCollection.findOne(query);
-    if (!challenge) {
-      return res.status(404).send({ message: 'Challenge not found' });
+app.post('/api/challenges/join/:id', async (req, res) => {
+    try {
+        const challengeId = req.params.id;
+        const { userId, userEmail } = req.body; // user identification
+
+        // 1. ObjectId-te convert kora
+        const query = { _id: new ObjectId(challengeId) };
+        const challenge = await challengesCollection.findOne(query);
+
+        if (!challenge) {
+            return res.status(404).send({ message: 'Challenge not found' });
+        }
+
+        // 2. Check if already joined (UserChallenges collection theke)
+        const alreadyJoined = await userChallengesCollection.findOne({
+            userId: userId,
+            challengeId: new ObjectId(challengeId)
+        });
+
+        if (alreadyJoined) {
+            return res.status(400).send({ message: 'User already joined this challenge' });
+        }
+
+        // 3. Insert into UserChallenges (Tracking data)
+        const newUserChallenge = {
+            userId,
+            challengeId: new ObjectId(challengeId),
+            status: "Ongoing",
+            progress: 0,
+            joinDate: new Date()
+        };
+        await userChallengesCollection.insertOne(newUserChallenge);
+
+        // 4. Update main Challenge participants count (Atomic Update)
+        await challengesCollection.updateOne(query, {
+            $addToSet: { participants: userId } 
+        });
+
+        res.send({ success: true, message: 'Joined successfully!' });
+    } catch (error) {
+        res.status(500).send({ message: error.message });
     }
-
-    if (challenge.participants && challenge.participants.includes(userId)) {
-      return res.status(400).send({ message: 'User already joined this challenge' });
-    }
-
-    const update = { $addToSet: { participants: userId } };
-    await challengesCollection.updateOne(query, update);
-    res.send({ message: 'User joined the challenge successfully' });
-   });
+});
   
 
    app.patch('/api/challenges/:id', async (req, res) => {
