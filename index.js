@@ -69,6 +69,26 @@ async function run() {
     res.send(result);
    });
 
+   app.post('/api/challenges/join/:id', async (req, res) => {
+    const id = req.params.id;
+    const { userId } = req.body;
+
+    const query = { _id: id };
+    const challenge = await challengesCollection.findOne(query);
+    if (!challenge) {
+      return res.status(404).send({ message: 'Challenge not found' });
+    }
+
+    if (challenge.participants && challenge.participants.includes(userId)) {
+      return res.status(400).send({ message: 'User already joined this challenge' });
+    }
+
+    const update = { $addToSet: { participants: userId } };
+    await challengesCollection.updateOne(query, update);
+    res.send({ message: 'User joined the challenge successfully' });
+   });
+  
+
    app.patch('/api/challenges/:id', async (req, res) => {
     const id = req.params.id;
     const updatedData = req.body;
