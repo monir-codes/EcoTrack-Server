@@ -44,6 +44,17 @@ async function run() {
     res.send(result);
   });
 
+   app.get(`/api/challenges/:id`, async(req, res)=>{
+    const id = req.params.id;
+    const query = {_id: id};
+    const result = await challengesCollection.findOne(query);
+    if(!result){
+      return res.status(404).send({message: 'Challenge not found'})
+    }
+    res.send(result);
+   });
+
+
    app.post('/api/challenges', async (req, res) => {
     const challenge = req.body;
 
