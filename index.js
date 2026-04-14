@@ -69,6 +69,18 @@ async function run() {
     res.send(result);
    });
 
+   app.patch('/api/challenges/:id', async (req, res) => {
+    const id = req.params.id;
+    const updatedData = req.body;
+    const query = {_id: id};
+    const result = await challengesCollection.updateOne(query, { $set: updatedData });
+    if (result.matchedCount === 0) {
+      return res.status(404).send({ message: 'Challenge not found' });
+    }
+    res.send({ message: 'Challenge updated successfully' });
+   });
+
+
    app.delete('/api/challenges/:id', async (req, res) => {
     const id = req.params.id;
     const query = {_id: id};
