@@ -15,21 +15,6 @@ dns.setServers(['8.8.8.8', '8.8.4.4']);
 app.use(express.json())
 app.use(cors());
 
-const FireBaseAuthToken = (req, res, next)=>{
-  const authHeader = req.headers.authorization;
-  if(!authHeader){
-    return res.status(401).send({message: 'Unauthorized access'})
-  }
-  
-  const token = authHeader.split(' ')[1];
-  if(!token){
-    return res.status(401).send({message: 'Unauthorized access'})
-  }
-
-  next();
-  
-}
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@simple-crud-cluster.0hdbxiy.mongodb.net/?appName=Simple-crud-cluster`;
 
 const client = new MongoClient(uri, {
@@ -54,13 +39,13 @@ async function run() {
     });
 
 
-   app.get('/api/challenges', FireBaseAuthToken, async (req, res) => {
+   app.get('/api/challenges', async (req, res) => {
     const cursor = challengesCollection.find({}).sort({ startDate: -1 });
     const result = await cursor.toArray();
     res.send(result);
   });
 
-   app.get(`/api/challenges/:id`, FireBaseAuthToken, async(req, res)=>{
+   app.get(`/api/challenges/:id`, async(req, res)=>{
     const id = req.params.id;
     const query = {_id: id};
     const result = await challengesCollection.findOne(query);
@@ -87,7 +72,7 @@ async function run() {
 
 
 
-app.post('/api/challenges/join/:id', FireBaseAuthToken, async (req, res) => {
+app.post('/api/challenges/join/:id', async (req, res) => {
     try {
         const challengeId = req.params.id;
         const { userId, userEmail } = req.body;
