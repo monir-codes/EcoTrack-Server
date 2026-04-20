@@ -4,7 +4,7 @@ const require = createRequire(import.meta.url);
 require('dotenv').config();
 const express = require('express')
 const app = express()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require('cors');
 const port = process.env.PORT || 3000
 
@@ -32,7 +32,8 @@ async function run() {
     // await client.connect();
     const db = client.db('ecotrack_db');
     const challengesCollection = db.collection('challenges');
-    const userChallengesCollection = db.collection('users_challenges');    
+    const userChallengesCollection = db.collection('users_challenges'); 
+    const tipsCollection = db.collection('tips');   
     app.get('/', (req, res) => {
       res.send('Server is running successfully')
     });
@@ -69,51 +70,56 @@ async function run() {
     res.send(result);
    });
 
-const { ObjectId } = require('mongodb');
+
 
 app.post('/api/challenges/join/:id', async (req, res) => {
     try {
         const challengeId = req.params.id;
-        const { userId, userEmail } = req.body; // user identification
+        const { userId, userEmail } = req.body;
 
-        // 1. ObjectId-te convert kora
-        const query = { _id: new ObjectId(challengeId) };
+        // চেক করুন আইডিটি ভ্যালিড কি না, যদি ভ্যালিড হয় তবে ObjectId করুন, নাহলে সরাসরি স্ট্রিং ইউজ করুন
+        const query = { _id: new ObjectId(challengeId) }; // এখানে স্ট্রিং রাখাই সেইফ যদি আপনার ডেমো ডাটা স্ট্রিং হয়
+
         const challenge = await challengesCollection.findOne(query);
 
         if (!challenge) {
             return res.status(404).send({ message: 'Challenge not found' });
         }
 
-        // 2. Check if already joined (UserChallenges collection theke)
+        // Check if already joined
         const alreadyJoined = await userChallengesCollection.findOne({
             userId: userId,
-            challengeId: new ObjectId(challengeId)
+            challengeId: challengeId // এখানে স্ট্রিং রাখাই সেইফ যদি আপনার ডেমো ডাটা স্ট্রিং হয়
         });
 
         if (alreadyJoined) {
             return res.status(400).send({ message: 'User already joined this challenge' });
         }
 
-        // 3. Insert into UserChallenges (Tracking data)
+        // Insert into UserChallenges
         const newUserChallenge = {
             userId,
-            challengeId: new ObjectId(challengeId),
+            userEmail,
+            challengeId: challengeId,
             status: "Ongoing",
             progress: 0,
             joinDate: new Date()
         };
         await userChallengesCollection.insertOne(newUserChallenge);
 
-        // 4. Update main Challenge participants count (Atomic Update)
+        // Update main Challenge - participants count বাড়ান এবং ইমেইল পুশ করুন
         await challengesCollection.updateOne(query, {
-            $addToSet: { participants: userId } 
+            $inc: { participants: 1 }, // সংখ্যা ১ বাড়াবে
+            $addToSet: { participantEmails: userEmail } // ইমেইলটি অ্যারেতে ঢুকাবে
         });
 
         res.send({ success: true, message: 'Joined successfully!' });
     } catch (error) {
+        console.error(error);
         res.status(500).send({ message: error.message });
     }
 });
+
   
 
    app.patch('/api/challenges/:id', async (req, res) => {
@@ -139,6 +145,12 @@ app.post('/api/challenges/join/:id', async (req, res) => {
     }
    });
 
+
+   app.get('/api/tips', async (req, res) => {
+    const cursor = tipsCollection.find({}).sort({ createdAt: -1 });
+    const result = await cursor.toArray();
+    res.send(result);
+   })
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
